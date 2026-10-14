@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#060910;color:#f0f6ff;font-family:'Inter',sans-serif;overflow-x:hidden}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.3);border-radius:4px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.8)}}
+@keyframes floatOrb{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-18px) rotate(3deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spinRing{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:.85rem 2.5rem;background:rgba(6,9,16,.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,229,255,.08)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;color:#00e5ff;letter-spacing:-.02em}
+.navlinks{display:flex;gap:1.6rem}
+.navlinks button{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;transition:color .2s;padding:4px 0}
+.navlinks button:hover,.navlinks button.active{color:#00e5ff}
+
+/* GRID BG */
+.gridbg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,229,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.025) 1px,transparent 1px);background-size:55px 55px}
+
+/* ORBS */
+.orb1{position:fixed;top:-15%;right:-8%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.12) 0%,transparent 70%);pointer-events:none;z-index:0}
+.orb2{position:fixed;bottom:0;left:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,255,.07) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+/* CANVAS */
+canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* SECTIONS */
+.wrap{max-width:1060px;margin:0 auto;padding:4.5rem 2rem;position:relative;z-index:1}
+.sec-label{font-family:'DM Mono',monospace;font-size:.68rem;color:#00e5ff;letter-spacing:.2em;text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:.6rem}
+.sec-label::before{content:'';width:28px;height:1px;background:#00e5ff;display:inline-block}
+.sec-title{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,3.5vw,2.5rem);font-weight:800;letter-spacing:-.03em;margin-bottom:2.5rem}
+
+/* GLASS */
+.glass{background:rgba(255,255,255,.04);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.09);border-radius:16px;transition:all .3s cubic-bezier(.4,0,.2,1)}
+.glass:hover{background:rgba(255,255,255,.07);border-color:rgba(0,229,255,.3);transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,229,255,.07)}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;align-items:center;position:relative;z-index:1;padding:0 2rem}
+.hero-inner{max-width:1060px;margin:0 auto;width:100%;padding-top:5rem}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.22);border-radius:100px;padding:5px 15px;margin-bottom:1.8rem}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:#00e5ff;box-shadow:0 0 8px #00e5ff;animation:pulse 2s infinite}
+.badge-txt{font-family:'DM Mono',monospace;font-size:.68rem;color:#00e5ff;letter-spacing:.1em}
+.hero-name{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(3rem,8vw,6.5rem);line-height:.92;letter-spacing:-.04em;margin-bottom:1rem;animation:fadeUp .8s ease both}
+.hero-name .outline{-webkit-text-stroke:2px rgba(255,255,255,.15);color:transparent}
+.typewriter-wrap{font-size:clamp(1rem,2.2vw,1.3rem);font-family:'Syne',sans-serif;margin-bottom:1.2rem;min-height:2rem;animation:fadeUp .8s .1s ease both}
+.cursor{animation:blink 1s step-end infinite;color:#00e5ff}
+.hero-desc{color:rgba(255,255,255,.5);font-size:.95rem;line-height:1.8;max-width:520px;margin-bottom:2.2rem;animation:fadeUp .8s .2s ease both}
+.hero-btns{display:flex;gap:.85rem;flex-wrap:wrap;margin-bottom:3.5rem;animation:fadeUp .8s .3s ease both}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:#00e5ff;color:#000;padding:11px 26px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,229,255,.35)}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.45);color:#a78bfa;padding:11px 26px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:600;font-size:.88rem;text-decoration:none;transition:all .2s}
+.btn-ghost:hover{background:rgba(124,58,237,.25);transform:translateY(-2px);box-shadow:0 8px 28px rgba(124,58,237,.2)}
+.stats{display:flex;gap:2.5rem;padding-top:2.2rem;border-top:1px solid rgba(255,255,255,.07);flex-wrap:wrap;animation:fadeUp .8s .4s ease both}
+.stat-n{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#00e5ff}
+.stat-l{font-family:'DM Mono',monospace;font-size:.65rem;color:rgba(255,255,255,.38);text-transform:uppercase;letter-spacing:.12em}
+.hero-orb{position:absolute;right:4%;top:50%;transform:translateY(-50%);width:300px;height:300px;border-radius:50%;background:radial-gradient(circle at 38% 38%,rgba(0,229,255,.14),rgba(124,58,237,.1),transparent 72%);border:1px solid rgba(0,229,255,.1);display:flex;align-items:center;justify-content:center;animation:floatOrb 6s ease-in-out infinite;pointer-events:none}
+.orb-ring{position:absolute;inset:-12px;border-radius:50%;border:1px dashed rgba(0,229,255,.12);animation:spinRing 20s linear infinite}
+.orb-ring2{position:absolute;inset:-26px;border-radius:50%;border:1px dashed rgba(124,58,237,.1);animation:spinRing 30s linear infinite reverse}
+.orb-txt{font-family:'Syne',sans-serif;font-weight:800;font-size:3.5rem;color:rgba(0,229,255,.35)}
+
+/* ABOUT BENTO */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;align-items:start}
+.mini-bento{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.mini-card{padding:1.1rem}
+.mini-icon{font-size:1.3rem;margin-bottom:.4rem}
+.mini-label{font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.2rem}
+.mini-val{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem}
+
+/* SKILLS */
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.1rem}
+.skill-card{padding:1.4rem}
+.skill-head{display:flex;align-items:center;gap:10px;margin-bottom:.9rem}
+.skill-icon-box{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.skill-cat{font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;margin:0}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-family:'DM Mono',monospace;font-size:.68rem;padding:3px 9px;border-radius:5px}
+
+/* EXP */
+.exp-card{padding:2rem;border-left:3px solid #00e5ff;border-radius:0 16px 16px 0}
+.exp-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.3rem;flex-wrap:wrap;gap:.75rem}
+.exp-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;margin:0 0 .2rem}
+.exp-co{color:#00e5ff;font-weight:600;font-size:.95rem}
+.exp-badge{font-family:'DM Mono',monospace;font-size:.7rem;padding:4px 13px;border-radius:100px;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);color:#00e5ff;white-space:nowrap}
+.exp-list{list-style:none;padding:0;margin:0}
+.exp-list li{color:rgba(255,255,255,.57);font-size:.9rem;line-height:1.7;padding:.35rem 0 .35rem 1.5rem;position:relative}
+.exp-list li::before{content:'▸';color:#00e5ff;position:absolute;left:0;top:.4rem;font-size:.65rem}
+
+/* PROJECTS BENTO */
+.bento-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem}
+.proj-card{padding:1.6rem;cursor:pointer;position:relative;overflow:hidden}
+.proj-bar{position:absolute;top:0;left:0;right:0;height:2px;border-radius:16px 16px 0 0}
+.proj-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.9rem}
+.proj-icon-box{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+.proj-link-badge{font-family:'DM Mono',monospace;font-size:.65rem;padding:3px 9px;border-radius:5px}
+.proj-name{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:.4rem}
+.proj-desc{color:rgba(255,255,255,.48);font-size:.82rem;line-height:1.6;margin-bottom:1.1rem}
+.proj-tech{display:flex;flex-wrap:wrap;gap:4px}
+.proj-pill{font-family:'DM Mono',monospace;font-size:.64rem;padding:2px 7px;border-radius:4px}
+
+/* EDU */
+.edu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.2rem}
+.edu-card{padding:1.75rem}
+.edu-deg{font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;margin-bottom:.25rem}
+.edu-school{color:#10b981;font-size:.88rem;font-weight:600;margin-bottom:.9rem}
+.edu-tags{display:flex;gap:7px;flex-wrap:wrap}
+.edu-tag{font-family:'DM Mono',monospace;font-size:.68rem;padding:3px 10px;border-radius:5px}
+
+/* CONTACT */
+.contact-wrap{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center}
+.contact-links{display:flex;flex-direction:column;gap:.75rem}
+.contact-card{display:flex;align-items:center;gap:.9rem;padding:.9rem 1.2rem;text-decoration:none;color:#fff;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);transition:all .22s}
+.contact-card:hover{transform:translateX(6px)}
+.c-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.c-label{font-weight:600;font-size:.88rem}
+.c-val{font-family:'DM Mono',monospace;font-size:.68rem;color:rgba(255,255,255,.38)}
+
+/* FOOTER */
+footer{text-align:center;padding:1.4rem 2rem;border-top:1px solid rgba(255,255,255,.05);font-family:'DM Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.28);position:relative;z-index:1}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .75s ease,transform .75s ease}
+.reveal.vis{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<div class="gridbg"></div>
+<div class="orb1"></div>
+<div class="orb2"></div>
+<canvas id="pc"></canvas>
+
+<!-- NAV -->
+<nav>
+  <span class="logo">JJS</span>
+  <div class="navlinks">
+    <button onclick="goto('about')">About</button>
+    <button onclick="goto('skills')">Skills</button>
+    <button onclick="goto('experience')">Experience</button>
+    <button onclick="goto('projects')">Projects</button>
+    <button onclick="goto('education')">Education</button>
+    <button onclick="goto('contact')">Contact</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" style="min-height:100vh;display:flex;align-items:center;position:relative;z-index:1;padding:0 2rem">
+  <div class="hero-inner">
+    <div class="badge"><span class="badge-dot"></span><span class="badge-txt">AVAILABLE FOR OPPORTUNITIES</span></div>
+    <div class="hero-name">
+      <span style="display:block">Jainam</span>
+      <span style="display:block" class="outline">Shah</span>
+    </div>
+    <div class="typewriter-wrap"><span id="tw" style="color:#00e5ff;font-family:'Syne',sans-serif"></span><span class="cursor">|</span></div>
+    <p class="hero-desc">Motivated MCA student with a strong foundation in full-stack development, data science & ML. Passionate about building scalable web applications and transforming data into meaningful insights.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="goto('projects')">View Projects →</button>
+      <a href="JAINAM SHAH.pdf" class="btn-ghost">↓ Download Resume</a>
+    </div>
+    <div class="stats">
+      <div><div class="stat-n">6+</div><div class="stat-l">Projects</div></div>
+      <div><div class="stat-n">8.07</div><div class="stat-l">CGPA</div></div>
+      <div><div class="stat-n">10+</div><div class="stat-l">Tech Skills</div></div>
+      <div><div class="stat-n">3mo</div><div class="stat-l">Internship</div></div>
+    </div>
+  </div>
+  <div class="hero-orb">
+    <div class="orb-ring"></div>
+    <div class="orb-ring2"></div>
+    <span class="orb-txt">JS</span>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" style="position:relative;z-index:1">
+<div class="wrap reveal">
+  <div class="sec-label">01 — About</div>
+  <div class="sec-title">Who I <span style="color:#00e5ff">Am</span></div>
+  <div class="about-grid">
+    <div class="glass" style="padding:1.75rem">
+      <p style="color:rgba(255,255,255,.62);line-height:1.8;font-size:.93rem;margin-bottom:.9rem">Hello! I'm <strong style="color:#fff">Jainam Jatin Shah</strong>, a MCA student at <strong style="color:#00e5ff">GLS University</strong>, Ahmedabad. Full-Stack Developer, Data Scientist, and Data Analyst.</p>
+      <p style="color:rgba(255,255,255,.62);line-height:1.8;font-size:.93rem;margin-bottom:.9rem">Experienced in building <strong style="color:#7c3aed">Django-powered web apps</strong>, implementing ML models, and crafting optimized database architectures.</p>
+      <p style="color:rgba(255,255,255,.62);line-height:1.8;font-size:.93rem;margin-bottom:1.2rem">Completed an internship at <strong style="color:#10b981">Way to Web</strong> building production Django applications in an Agile environment.</p>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <a href="https://www.linkedin.com/in/jainam259/" target="_blank" style="padding:5px 14px;border-radius:6px;border:1px solid #0077b530;color:#0077b5;background:#0077b510;font-size:.75rem;font-family:'DM Mono',monospace;text-decoration:none">LinkedIn ↗</a>
+        <a href="https://github.com/Jainam259" target="_blank" style="padding:5px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.15);color:#fff;background:rgba(255,255,255,.05);font-size:.75rem;font-family:'DM Mono',monospace;text-decoration:none">GitHub ↗</a>
+        <a href="https://leetcode.com/u/Jainam_shah2594/" target="_blank" style="padding:5px 14px;border-radius:6px;border:1px solid #f59e0b30;color:#f59e0b;background:#f59e0b10;font-size:.75rem;font-family:'DM Mono',monospace;text-decoration:none">LeetCode ↗</a>
+      </div>
+    </div>
+    <div class="mini-bento">
+      <div class="glass mini-card"><div class="mini-icon">📍</div><div class="mini-label" style="color:#10b981">Location</div><div class="mini-val">Ahmedabad, Gujarat</div></div>
+      <div class="glass mini-card"><div class="mini-icon">🎓</div><div class="mini-label" style="color:#7c3aed">Degree</div><div class="mini-val">MCA — GLS Univ</div></div>
+      <div class="glass mini-card"><div class="mini-icon">💼</div><div class="mini-label" style="color:#00e5ff">Status</div><div class="mini-val">Open to Work</div></div>
+      <div class="glass mini-card"><div class="mini-icon">⭐</div><div class="mini-label" style="color:#f59e0b">CGPA</div><div class="mini-val">8.07 / 10</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills" style="position:relative;z-index:1;background:rgba(255,255,255,.01)">
+<div class="wrap reveal">
+  <div class="sec-label">02 — Skills</div>
+  <div class="sec-title">Tech <span style="color:#7c3aed">Stack</span></div>
+  <div class="skills-grid" id="skillsgrid"></div>
+</div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience" style="position:relative;z-index:1">
+<div class="wrap reveal">
+  <div class="sec-label">03 — Experience</div>
+  <div class="sec-title">Work <span style="color:#10b981">History</span></div>
+  <div class="glass exp-card">
+    <div class="exp-header">
+      <div><div class="exp-title">Web Development Intern</div><div class="exp-co">Way to Web</div></div>
+      <span class="exp-badge">Jan 2025 — Mar 2025</span>
+    </div>
+    <ul class="exp-list">
+      <li>Built and maintained Django-based web applications with optimized backend logic and database design.</li>
+      <li>Implemented efficient CRUD operations using Django ORM, improving data handling and performance.</li>
+      <li>Developed secure authentication, authorization, and form validation systems.</li>
+      <li>Collaborated in an Agile team using Git for version control and code reviews.</li>
+      <li>Designed and enhanced UI using HTML, CSS, and JavaScript.</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects" style="position:relative;z-index:1">
+<div class="wrap reveal">
+  <div class="sec-label">04 — Projects</div>
+  <div class="sec-title">What I've <span style="color:#00e5ff">Built</span></div>
+  <div class="bento-grid" id="projgrid"></div>
+  <div style="text-align:center;margin-top:1.8rem">
+    <a href="https://github.com/Jainam259" target="_blank" style="display:inline-flex;align-items:center;gap:7px;padding:9px 22px;border-radius:8px;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;font-size:.78rem;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='#00e5ff';this.style.color='#00e5ff'" onmouseout="this.style.borderColor='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.5)'">View all repos on GitHub →</a>
+  </div>
+</div>
+</section>
+
+<!-- EDUCATION -->
+<section id="education" style="position:relative;z-index:1">
+<div class="wrap reveal">
+  <div class="sec-label">05 — Education</div>
+  <div class="sec-title">Academic <span style="color:#10b981">Background</span></div>
+  <div class="edu-grid">
+    <div class="glass edu-card">
+      <div style="font-size:1.8rem;margin-bottom:.8rem">🎓</div>
+      <div class="edu-deg">Bachelor of Computer Applications</div>
+      <div class="edu-school">GLS University (Gujarat Law Society)</div>
+      <div class="edu-tags">
+        <span class="edu-tag" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#10b981">CGPA: 8.07</span>
+        <span class="edu-tag" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45)">2022–2025</span>
+      </div>
+    </div>
+    <div class="glass edu-card">
+      <div style="font-size:1.8rem;margin-bottom:.8rem">📚</div>
+      <div class="edu-deg">Class XII — GSEB</div>
+      <div class="edu-school">Shree Swaminarayan Gurukul High School</div>
+      <div class="edu-tags">
+        <span class="edu-tag" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#10b981">83%</span>
+        <span class="edu-tag" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45)">2022</span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" style="position:relative;z-index:1;border-top:1px solid rgba(255,255,255,.05)">
+<div class="wrap reveal">
+  <div class="contact-wrap">
+    <div>
+      <div class="sec-label">06 — Contact</div>
+      <div class="sec-title" style="margin-bottom:1rem">Let's <span style="color:#00e5ff">Connect</span></div>
+      <p style="color:rgba(255,255,255,.48);line-height:1.8;margin-bottom:1.8rem;font-size:.93rem">Open to new opportunities, collaborations, and interesting conversations. Whether you have a project idea, internship offer, or just want to say hi — reach out!</p>
+      <a href="#" onclick="return false" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(124,58,237,.28),rgba(0,229,255,.12));border:1px solid rgba(124,58,237,.4);color:#a78bfa;padding:11px 26px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:600;font-size:.88rem;text-decoration:none;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 30px rgba(124,58,237,.25)'" onmouseout="this.style.transform='';this.style.boxShadow=''">↓ Download Resume</a>
+    </div>
+    <div class="contact-links">
+      <a href="mailto:Jainamshah898@gmail.com" class="contact-card" onmouseover="this.style.borderColor='rgba(0,229,255,.3)';this.style.background='rgba(0,229,255,.05)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)';this.style.background='rgba(255,255,255,.03)'"><div class="c-icon" style="background:rgba(0,229,255,.12)">✉️</div><div><div class="c-label">Email</div><div class="c-val">Jainamshah898@gmail.com</div></div></a>
+      <a href="https://www.linkedin.com/in/jainam259/" target="_blank" class="contact-card" onmouseover="this.style.borderColor='rgba(0,119,181,.4)';this.style.background='rgba(0,119,181,.06)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)';this.style.background='rgba(255,255,255,.03)'"><div class="c-icon" style="background:rgba(0,119,181,.18)">💼</div><div><div class="c-label">LinkedIn</div><div class="c-val">linkedin.com/in/jainam259</div></div></a>
+      <a href="https://github.com/Jainam259" target="_blank" class="contact-card" onmouseover="this.style.borderColor='rgba(255,255,255,.25)';this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)';this.style.background='rgba(255,255,255,.03)'"><div class="c-icon" style="background:rgba(255,255,255,.08)">🐙</div><div><div class="c-label">GitHub</div><div class="c-val">github.com/Jainam259</div></div></a>
+      <a href="tel:+916354592403" class="contact-card" onmouseover="this.style.borderColor='rgba(16,185,129,.3)';this.style.background='rgba(16,185,129,.05)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)';this.style.background='rgba(255,255,255,.03)'"><div class="c-icon" style="background:rgba(16,185,129,.12)">📱</div><div><div class="c-label">Phone</div><div class="c-val">+91 6354592403</div></div></a>
+    </div>
+  </div>
+</div>
+</section>
+
+<footer>Designed & Built by <span style="color:#00e5ff">Jainam Shah</span> · 2025</footer>
+
+<script>
+/* ── PARTICLES ── */
+(function(){
+  const c=document.getElementById('pc'),ctx=c.getContext('2d');
+  let W=c.width=window.innerWidth,H=c.height=window.innerHeight;
+  const pts=Array.from({length:55},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.8+.4,o:Math.random()*.45+.08}));
+  window.addEventListener('resize',()=>{W=c.width=window.innerWidth;H=c.height=window.innerHeight});
+  (function loop(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,229,255,${p.o})`;ctx.fill();
+    });
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<110){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(0,229,255,${.07*(1-d/110)})`;ctx.lineWidth=.5;ctx.stroke();}
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ── TYPEWRITER ── */
+(function(){
+  const words=["Full-Stack Developer","Data Scientist","Data Analyst","Django Expert","ML Engineer"];
+  let wi=0,ci=0,del=false,el=document.getElementById('tw');
+  setInterval(()=>{
+    const w=words[wi%words.length];
+    if(!del){el.textContent=w.slice(0,ci+1);ci++;if(ci===w.length)setTimeout(()=>del=true,1300);}
+    else{el.textContent=w.slice(0,ci-1);ci--;if(ci===0){del=false;wi++;}}
+  },del?38:75);
+})();
+
+/* ── SCROLL GOTO ── */
+function goto(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
+
+/* ── SKILLS ── */
+const skills=[
+  {cat:"Languages",icon:"💻",items:["Python","Java","JavaScript","C","C++","SQL","PHP"],c:"#00e5ff"},
+  {cat:"Web Tech",icon:"🌐",items:["React.js","HTML5","CSS3","Bootstrap","Tailwind CSS"],c:"#7c3aed"},
+  {cat:"Frameworks",icon:"⚡",items:["Django","Flask","Express.js","Node.js","REST APIs"],c:"#10b981"},
+  {cat:"Databases",icon:"🗄️",items:["PostgreSQL","SQLite","Django ORM","MongoDB"],c:"#f59e0b"},
+  {cat:"Tools",icon:"🛠️",items:["Git","GitHub","Agile/Scrum"],c:"#ec4899"},
+  {cat:"Data / ML",icon:"🤖",items:["Machine Learning","Data Analysis","Scikit-learn","Pandas"],c:"#6366f1"},
+];
+const sg=document.getElementById('skillsgrid');
+skills.forEach(s=>{
+  sg.innerHTML+=`<div class="glass skill-card">
+    <div class="skill-head">
+      <div class="skill-icon-box" style="background:${s.c}18">${s.icon}</div>
+      <h3 class="skill-cat" style="color:${s.c}">${s.cat}</h3>
+    </div>
+    <div class="tags">${s.items.map(it=>`<span class="tag" style="background:${s.c}10;border:1px solid ${s.c}28;color:#fff">${it}</span>`).join('')}</div>
+  </div>`;
+});
+
+/* ── PROJECTS ── */
+const projs=[
+  {n:"Hostel Management System",icon:"🏨",d:"Full-stack web app with real-time booking, payments, role-based auth & admin dashboard.",tech:["Django","Python","SQLite","Bootstrap","JS"],url:"https://github.com/Jainam259/HostelManagement",c:"#00e5ff",wide:true},
+  {n:"Audio Guide",icon:"🎧",d:"Dual-mode system for pre-recorded & live guides with OTP auth via Twilio.",tech:["Django","Twilio","SQLite","JS"],url:"https://github.com/Jainam259/AudioGuide",c:"#7c3aed",wide:false},
+  {n:"Talent Bridge",icon:"🌉",d:"Python-powered talent management platform bridging talent & opportunities.",tech:["Python","Django","PostgreSQL"],url:"https://github.com/Jainam259/Talent_Bridge",c:"#10b981",wide:false},
+  {n:"Event Management",icon:"🎉",d:"Create events, register participants, track schedules & manage details.",tech:["JavaScript","HTML/CSS","REST API"],url:"https://github.com/Jainam259/Event-Management-System",c:"#f59e0b",wide:false},
+  {n:"Image Caption Generator",icon:"🖼️",d:"AI-powered app that auto-generates descriptive captions for images using ML.",tech:["Python","ML/AI","Flask","HTML"],url:"https://github.com/Jainam259/Image-Caption-Generator",c:"#ec4899",wide:false},
+  {n:"Python Projects",icon:"🐍",d:"Collection covering algorithms, data structures, file handling & real-world problems.",tech:["Python","Algorithms","Data Structures"],url:"https://github.com/Jainam259/Python-Project",c:"#6366f1",wide:false},
+];
+const pg=document.getElementById('projgrid');
+projs.forEach((p,i)=>{
+  const el=document.createElement('div');
+  el.className='glass proj-card';
+  if(i===0)el.style.gridColumn='span 2';
+  el.style.fontSize=i===0?'1rem':'.9rem';
+  el.innerHTML=`
+    <div class="proj-bar" style="background:linear-gradient(90deg,${p.c},transparent)"></div>
+    <div class="proj-top">
+      <div class="proj-icon-box" style="background:${p.c}15">${p.icon}</div>
+      <span class="proj-link-badge" style="color:${p.c};background:${p.c}12;border:1px solid ${p.c}25">GitHub ↗</span>
+    </div>
+    <div class="proj-name" style="font-size:${i===0?'1.15rem':'1rem'}">${p.n}</div>
+    <div class="proj-desc">${p.d}</div>
+    <div class="proj-tech">${p.tech.map(t=>`<span class="proj-pill" style="background:${p.c}0d;border:1px solid ${p.c}22;color:${p.c}">${t}</span>`).join('')}</div>`;
+  el.onclick=()=>window.open(p.url,'_blank');
+  pg.appendChild(el);
+});
+
+/* ── REVEAL ON SCROLL ── */
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+/* ── ACTIVE NAV ── */
+const secIds=['about','skills','experience','projects','education','contact'];
+const navObs=new IntersectionObserver(entries=>entries.forEach(e=>{
+  if(e.isIntersecting){
+    document.querySelectorAll('.navlinks button').forEach(b=>{b.classList.remove('active');if(b.textContent.toLowerCase()===e.target.id)b.classList.add('active');});
+  }
+}),{threshold:.35});
+secIds.forEach(id=>{const el=document.getElementById(id);if(el)navObs.observe(el);});
+</script>
+</body>
+</html>
